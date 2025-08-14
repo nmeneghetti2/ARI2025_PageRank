@@ -30,7 +30,7 @@ python T2.py /your_graph_path /your_output_path 0.1
 
 
 
->  If you want to sample using a different sampling probability distribution, you need to uncomment the code below
+>  If you want to sample from matrix using a different sampling probability distribution, you need to uncomment the code below.
 
 ``` python
 # Calculate p-distribution (using row and column f paradigms)
@@ -63,7 +63,7 @@ sampled_index = np.random.choice(A.shape[1], size=c, replace=False, p=probabilit
 
 
 
-> If you need to scale the sampled elements, you need to uncomment the following code
+> If you need to scale the sampled elements, you need to uncomment the following code.
 
 ``` python
 ## TODO If you want to do Scaling, you need the following code
