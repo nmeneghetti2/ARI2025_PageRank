@@ -10,22 +10,25 @@ All the algorithms have been test on a machine with 4 Intel Xeon E7-4830 CPUs (5
 ### CUR_Trans
 
 ```bash
-# args[1]: algorithm name
-# args[2]: graph path
-# args[3]: output path
-# args[4]: sampling ratio of col
-# args[5]: the number of nodes in the graph
-# args[6]: sampling ratio of row
-python CUR_Trans /your_graph_path /your_output_path 0.1 1000 0.1
+# args[1]: source code file name
+# args[2]: algorithm name
+# args[3]: graph path
+# args[4]: output path
+# args[5]: sampling ratio of col
+# args[6]: the number of nodes in the graph
+# args[7]: sampling ratio of row
+python CUR.py CUR_Trans /your_graph_path /your_output_path 0.1 1000 0.1
 ```
 
 ### $T^2$-Approx
 
 ```bash
-# args[1]: graph path
-# args[2]: output path
-# args[3]: sampling ratio
-python T2.py /your_graph_path /your_output_path 0.1
+# args[1]: source code file name
+# args[2]: algorithm name
+# args[3]: graph path
+# args[4]: output path
+# args[5]: sampling ratio
+python T2.py T2 /your_graph_path /your_output_path 0.1
 ```
 
 ### Other variants of CUR_Trans and $T^2$-Approx 
@@ -104,9 +107,10 @@ python SVD_Trans /your_graph_path /your_output_path 0.1 1000
 ## Competitors 
 
 ``` bash
-# args[1]: algorithm name
-# args[2]: graph path
-# args[3]: output path
+# args[1]: source code file name
+# args[2]: algorithm name
+# args[3]: graph path
+# args[4]: output path
 
 # Use Networkit to calculate the PageRank of the original graph as the ground truth of the experiment.
 python Competitors.py GroundTruth /your_graph_path /your_output_path
@@ -114,29 +118,29 @@ python Competitors.py GroundTruth /your_graph_path /your_output_path
 # --------------------competitors in the paper
 
 # DSPI：
-# args[4]: alpha,
-# args[5]: theta, alpha and theta together determine the sampling probability of elements.
+# args[5]: alpha,
+# args[6]: theta, alpha and theta together determine the sampling probability of elements.
 python Competitors.py DSPI /your_graph_path /your_output_path 0.1 0.1
 
 # ApproxRank:
-# args[4]: sampling_ratio, 
-# args[5]: node_num, the number of vertices in the subgraph.
+# args[5]: sampling_ratio, 
+# args[6]: node_num, the number of vertices in the subgraph.
 python Competitors.py ApproxRank /your_graph_path /your_output_path 0.1 1000
 
 # LPRAP：
-# args[4]:sampling_num, the number of vertices in the subgraph.
-# args[5]:edges_ration, the sampling ratio of edges.
-# args[6]:T, purning threshold.
+# args[5]:sampling_num, the number of vertices in the subgraph.
+# args[6]:edges_ration, the sampling ratio of edges.
+# args[7]:T, purning threshold.
 python Competitors.py LPRAP /your_graph_path /your_output_path 100 0.1 0.1
 
 # ---------------------- other competitors
 
 # LocalPR: LPRAP is an optimized version of LocalPR, so the article only compares LPRAP and not LocalPR. 
-# args[4]: sampling_num, the number of vertices in the subgraph.
-# args[5]: edges ration, the sampling ratio of edges.
+# args[5]: sampling_num, the number of vertices in the subgraph.
+# args[6]: edges ration, the sampling ratio of edges.
 python Competitors.py LocalPR /your_graph_path /your_output_path 100 0.1
 
 # PER_PR: DSPI performs biased sampling on the elements in the matrix, and we have also implemented a uniform sampling version.
-# args[4]: theta, the sampling ratio of sparsifying edge
+# args[5]: theta, the sampling ratio of sparsifying edge
 python Competitors.py PER_PR /your_graph_path /your_output_path 0.1
 ```
