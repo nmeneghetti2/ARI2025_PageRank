@@ -3,18 +3,18 @@
 This is an implementation of the CUR_Trans and $T^2$-Approx algorithms proposed in the paper “Efficient and Accurate PageRank Approximation on Large Graphs” published in the 2025 Proceedings of the ACM on Management of Data, and includes the competitors which are sampling-based PageRank estimations.
 
 ## Contents
-> CUR.py: The algorithm CUR-Trans proposed in this paper and its variant SVD-Trans.
-> T2.py:  The algorithm $T^2$-Approx proposed in this paper.
-> Competitors.py: The comparison algorithm in this paper.
-> Poster.pdf: Display poster of main paper content
-> Supplementary Material.pdf: Proofs and experiments not included in the paper due to limited page.
+CUR.py: The algorithm CUR-Trans proposed in this paper and its variant SVD-Trans.
+T2.py:  The algorithm $T^2$-Approx proposed in this paper.
+Competitors.py: The comparison algorithm in this paper.
+Poster.pdf: Display poster of main paper content
+Supplementary Material.pdf: Proofs and experiments not included in the paper due to limited page.
 
 ## Required environment
-> Since the source code of the competitors are not available, we have implemented all the competitors. Specifically, algorithms DSPI and LPRAP compute PageRank values based on graph operations. They are implemented using  Networkit (10.1). Algorithms ApproxRank, SVD-Trans, CUR-Trans, and $T^2$-Approx perform matrix iterations. They are implemented using  NumPy (1.20.1) and SciPy (1.8.1).
+Since the source code of the competitors are not available, we have implemented all the competitors. Specifically, algorithms DSPI and LPRAP compute PageRank values based on graph operations. They are implemented using  Networkit (10.1). Algorithms ApproxRank, SVD-Trans, CUR-Trans, and $T^2$-Approx perform matrix iterations. They are implemented using  NumPy (1.20.1) and SciPy (1.8.1).
 All experiments are running on a machine with 4 Intel Xeon E7-4830 CPUs (56 cores, 2.0 GHz) and 2 TB main memory with Python (3.8.8). 
 
 ## Dataset
-> We conduct evaluations on three real large graph datasets, Friendster and Orkut and UKDomain. These dataset can be download at:
+We conduct evaluations on three real large graph datasets, Friendster and Orkut and UKDomain. These dataset can be download at:
 Friendster: http://konect.cc/networks/friendster/
 Orkut: http://konect.cc/networks/orkut-groupmemberships/
 UKDomain: http://konect.cc/networks/dimacs10-uk-2007-05/
