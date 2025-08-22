@@ -3,29 +3,23 @@
 This is an implementation of the CUR_Trans and $T^2$-Approx algorithms proposed in the paper “Efficient and Accurate PageRank Approximation on Large Graphs” published in the 2025 Proceedings of the ACM on Management of Data, and includes the competitors which are sampling-based PageRank estimations.
 
 ## Required environment
-
+Since the source code of the competitors are not available, we have implemented all the competitors. Specifically, algorithms DSPI and LPRAP compute PageRank values based on graph operations. They are implemented using  Networkit (10.1). Algorithms ApproxRank, SVD-Trans, CUR-Trans, and $T^2$-Approx perform matrix iterations. They are implemented using  NumPy (1.20.1) and SciPy (1.8.1).
+All the algorithms have been test on a machine with 4 Intel Xeon E7-4830 CPUs (56 cores, 2.0 GHz) and 2 TB main memory with Python (3.8.8). 
 
 ## Propose algorithms CUR_Trans and $T^2$-Approx
-### SVD-Trans & CUR_Trans
-
-> base command
+### CUR_Trans
 
 ```bash
 # args[1]: algorithm name
 # args[2]: graph path
 # args[3]: output path
-# args[4]: sampling ratio
+# args[4]: sampling ratio of col
 # args[5]: the number of nodes in the graph
-# --args[6]: If you use algorithm CUR_Trans, you also need a row sampling ratio parameter
-python SVD_Trans /your_graph_path /your_output_path 0.1 1000
+# args[6]: sampling ratio of row
 python CUR_Trans /your_graph_path /your_output_path 0.1 1000 0.1
 ```
 
-
-
 ### $T^2$-Approx
-
-> base command
 
 ```bash
 # args[1]: graph path
@@ -34,88 +28,115 @@ python CUR_Trans /your_graph_path /your_output_path 0.1 1000 0.1
 python T2.py /your_graph_path /your_output_path 0.1
 ```
 
+### Other variants of CUR_Trans and $T^2$-Approx 
 
-
->  If you want to sample from matrix using a different sampling probability distribution, you need to uncomment the code below.
+> $T^2$-Approx involve sampling operations on the transition matrix $T$, and we can use different sampling distributions. If you want to sample from matrix using a different sampling probability distribution, you need to uncomment the code below.
 
 ``` python
-# Calculate p-distribution (using row and column f paradigms)
+# Step I: Calculate the distribution we want. We propose four widely used distributions on matrix smapling.
+
+# (1)F-norm of column and row (widely used and applied in our paper):
 col_sums = A.power(2).sum(axis=0)
 row_sums = A.power(2).sum(axis=1)
 p = np.multiply(col_sums, row_sums)
 probabilities = p / sum(p)
 
-# column f paradigms
+# (2)F-norm of column: 
 # total_sums = A.power(2).sum()
 # col_sums = A.power(2).sum(axis=0)
 # col_distribution = col_sums / total_sums
 
-# row f paradigms
+# (3)F-norm of row: 
 # total_sums = A.power(2).sum()
 # row_sums = A.power(2).sum(axis=1)
 # row_distribution = row_sums / total_sums
 
+# (4)uniform distribution.
 
-
-# using row and column f paradigms
+# Step II: Use different distributions.
+# (1)F-norm of column and row:
 sampled_index = np.random.choice(A.shape[1], size=c, replace=False, p=probabilities)
-# # column f paradigms
+
+# (2)F-norm of column: 
 # sampled_index = np.random.choice(A.shape[1], size=c, replace=False, p=col_distribution)
-# # row f paradigms
+
+# (3)F-norm of row: 
 # sampled_index = np.random.choice(A.shape[1], size=c, replace=False, p=row_distribution)
-# # uniform distribution
+
+# (4)uniform distribution:
 # sampled_index = np.random.choice(A.shape[1], size=c, replace=False, p=None)
 ```
 
-
-
-> If you need to scale the sampled elements, you need to uncomment the following code.
+> The low-rank approximation algorithm used in CUR_Trans and the Monte Carlo matrix multiplication algorithm used in $T^2$-Approx both recommend scaling each sampled element to obtain better approximation results. However, this is not applicable to the PageRank scenario, as detailed in the paper. Nevertheless, this project provides scaling operations for others to test and study. If you need to scale the sampled elements, you need to uncomment the following code.
 
 ``` python
-## TODO If you want to do Scaling, you need the following code
-# probabilities = np.sqrt(probabilities * c)
-# # row traversal
+# # Scaling each element in R.
 # for i in range(R.shape[0]):
 #     start_idx = R.indptr[i]
 #     end_idx = R.indptr[i + 1]
 #     for j in range(start_idx, end_idx):
 #         col_idx = R.indices[j]
 #         value = R.data[j]
-#         R[i, col_idx] = value / probabilities[sampled_index[i]]
+#         R[i, col_idx] = value / row_distribution[sampled_row_index[i]]
 #
-# # col traversal
+# # Scaling each element in C.
+# C = sp.sparse.csc_array(C)
 # for j in range(C.shape[1]):
 #     start_idx = C.indptr[j]
 #     end_idx = C.indptr[j + 1]
 #     for i in range(start_idx, end_idx):
 #         row_idx = C.indices[i]
 #         value = C.data[i]
-#         C[row_idx, j] = value / probabilities[sampled_index[j]]
+#         C[row_idx, j] = value / col_distribution[sampled_col_index[j]]
 ```
 
+> CUR-Trans use CUR low rank approximation method to get a smaller iteration matrix of transition matrix $T$ for PageRank, and other low rank approximation methods can replace CUR. We provide SVD as an example and propose SVD-Trans.
 
+``` bash
+# args[1]: algorithm name
+# args[2]: graph path
+# args[3]: output path
+# args[4]: sampling ratio of col
+# args[5]: the number of nodes in the graph
+python SVD_Trans /your_graph_path /your_output_path 0.1 1000
+```
 
 ## Competitors 
 
-> base command
-
 ``` bash
-# Use Networkit to calculate the PageRank of the original graph for the ground truth of the experiment
+# args[1]: algorithm name
+# args[2]: graph path
+# args[3]: output path
+
+# Use Networkit to calculate the PageRank of the original graph as the ground truth of the experiment.
 python Competitors.py GroundTruth /your_graph_path /your_output_path
 
-# Edge Random Sampling: The fourth parameter, theta, represents the random threshold
+# --------------------competitors in the paper
+
+# DSPI：
+# args[4]: alpha,
+# args[5]: theta, alpha and theta together determine the sampling probability of elements.
+python Competitors.py DSPI /your_graph_path /your_output_path 0.1 0.1
+
+# ApproxRank:
+# args[4]: sampling_ratio, 
+# args[5]: node_num, the number of vertices in the subgraph.
+python Competitors.py ApproxRank /your_graph_path /your_output_path 0.1 1000
+
+# LPRAP：
+# args[4]:sampling_num, the number of vertices in the subgraph.
+# args[5]:edges_ration, the sampling ratio of edges.
+# args[6]:T, purning threshold.
+python Competitors.py LPRAP /your_graph_path /your_output_path 100 0.1 0.1
+
+# ---------------------- other competitors
+
+# LocalPR: LPRAP is an optimized version of LocalPR, so the article only compares LPRAP and not LocalPR. 
+# args[4]: sampling_num, the number of vertices in the subgraph.
+# args[5]: edges ration, the sampling ratio of edges.
+python Competitors.py LocalPR /your_graph_path /your_output_path 100 0.1
+
+# PER_PR: DSPI performs biased sampling on the elements in the matrix, and we have also implemented a uniform sampling version.
+# args[4]: theta, the sampling ratio of sparsifying edge
 python Competitors.py PER_PR /your_graph_path /your_output_path 0.1
-
-# DSPI：args[4]: alpha; args[5]: theta
-python Competitors.py PER_PR /your_graph_path /your_output_path 0.1 0.1
-
-# ApproxRank: args[4]: sampling ratio; args[5]: the number of nodes in the graph
-python Competitors.py PER_PR /your_graph_path /your_output_path 0.1 1000
-
-# LocalPR: args[4]: the number of nodes to be estimated; args[5]: edges ration
-python Competitors.py PER_PR /your_graph_path /your_output_path 100 0.1
-
-# LPRAP：args[6]: threshold
-python Competitors.py PER_PR /your_graph_path /your_output_path 100 0.1 0.1
 ```
-
