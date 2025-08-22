@@ -55,33 +55,34 @@ def T2(graph_path, output_path, sampling_ratio):
     # Number of edges of the original graph
     original_edges_num = A.nnz
 
-    # TODO Use different distributions to pump nodes
-    # Calculate p-distribution (using row and column f paradigms)
+    # If you want to sample from matrix using a different sampling probability distribution, you need to uncomment the code below.
+    # Calculate the distribution we want. We propose four widely used distributions on matrix smapling.
+    # (1)F-norm of column and row (widely used and applied in our paper):
     col_sums = A.power(2).sum(axis=0)
     row_sums = A.power(2).sum(axis=1)
     p = np.multiply(col_sums, row_sums)
     probabilities = p / sum(p)
-
-    # column f paradigms
+    # (2)F-norm of column: 
     # total_sums = A.power(2).sum()
     # col_sums = A.power(2).sum(axis=0)
     # col_distribution = col_sums / total_sums
-
-    # row f paradigms
+    # (3)F-norm of row: 
     # total_sums = A.power(2).sum()
     # row_sums = A.power(2).sum(axis=1)
     # row_distribution = row_sums / total_sums
+    # (4)uniform distribution.
 
     start_time = time.time()
 
     c = int(len(node_dict_t) * sampling_ratio)
-    # using row and column f paradigms
+    # Use different distributions.
+    # (1)F-norm of column and row:
     sampled_index = np.random.choice(A.shape[1], size=c, replace=False, p=probabilities)
-    # # column f paradigms
+    # (2)F-norm of column: 
     # sampled_index = np.random.choice(A.shape[1], size=c, replace=False, p=col_distribution)
-    # # row f paradigms
+    # (3)F-norm of row: 
     # sampled_index = np.random.choice(A.shape[1], size=c, replace=False, p=row_distribution)
-    # # uniform distribution
+    # (4)uniform distribution:
     # sampled_index = np.random.choice(A.shape[1], size=c, replace=False, p=None)
     sampled_index.sort()
     C = A[:, sampled_index]  # column vector，n*c
@@ -91,9 +92,9 @@ def T2(graph_path, output_path, sampling_ratio):
     print("the number of C edges: ", C.nnz / original_edges_num)
     sys.stdout.flush()
 
-    ## TODO If you want to do Scaling, you need the following code
+    # If you want to do Scaling, you need the following code
     # probabilities = np.sqrt(probabilities * c)
-    # # row traversal
+    # # Scaling each element in R.
     # for i in range(R.shape[0]):
     #     start_idx = R.indptr[i]
     #     end_idx = R.indptr[i + 1]
@@ -102,7 +103,7 @@ def T2(graph_path, output_path, sampling_ratio):
     #         value = R.data[j]
     #         R[i, col_idx] = value / probabilities[sampled_index[i]]
     #
-    # # col traversal
+    # # Scaling each element in C.
     # for j in range(C.shape[1]):
     #     start_idx = C.indptr[j]
     #     end_idx = C.indptr[j + 1]
