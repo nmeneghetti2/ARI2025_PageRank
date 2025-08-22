@@ -24,11 +24,10 @@ python CUR.py CUR_Trans /your_graph_path /your_output_path 0.1 1000 0.1
 
 ```bash
 # args[1]: source code file name
-# args[2]: algorithm name
-# args[3]: graph path
-# args[4]: output path
-# args[5]: sampling ratio
-python T2.py T2 /your_graph_path /your_output_path 0.1
+# args[2]: graph path
+# args[3]: output path
+# args[4]: sampling ratio
+python T2.py /your_graph_path /your_output_path 0.1
 ```
 
 ### Other variants of CUR_Trans and $T^2$-Approx 
@@ -101,7 +100,7 @@ sampled_index = np.random.choice(A.shape[1], size=c, replace=False, p=probabilit
 # args[3]: output path
 # args[4]: sampling ratio of col
 # args[5]: the number of nodes in the graph
-python SVD_Trans /your_graph_path /your_output_path 0.1 1000
+python CUR.py SVD_Trans /your_graph_path /your_output_path 0.1 1000
 ```
 
 ## Competitors 
