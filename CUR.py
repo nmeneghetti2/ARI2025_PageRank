@@ -212,9 +212,9 @@ def CUR_Trans(graph_path, output_path, node_num, sampling_ratio, row_sampling_ra
     C = A[:, sampled_col_index]
     R = A[sampled_row_index, :]
 
-    # TODO If you need to do scaling, you need the following code
-    # # Divide the C and R matrices by the specific gravity
-    # # row traversal
+    # # If you need to scale the sampled elements, you need to uncomment the following code.
+    # # Divide the C and R matrices by the specific parameter.
+    # # Scaling each element in R.
     # for i in range(R.shape[0]):
     #     start_idx = R.indptr[i]
     #     end_idx = R.indptr[i + 1]
@@ -223,7 +223,7 @@ def CUR_Trans(graph_path, output_path, node_num, sampling_ratio, row_sampling_ra
     #         value = R.data[j]
     #         R[i, col_idx] = value / row_distribution[sampled_row_index[i]]
     #
-    # # col traversal
+    # # Scaling each element in C.
     # C = sp.sparse.csc_array(C)
     # for j in range(C.shape[1]):
     #     start_idx = C.indptr[j]
@@ -234,14 +234,6 @@ def CUR_Trans(graph_path, output_path, node_num, sampling_ratio, row_sampling_ra
     #         C[row_idx, j] = value / col_distribution[sampled_col_index[j]]
 
     W = A[sampled_row_index][:, sampled_col_index]
-
-    # TODO Compute the rank of W
-    # rank_start_time = time.time()
-    # _, s, _ = sp.sparse.linalg.svds(W, k=min(W.shape[0], W.shape[1]) - 1)
-    # rank_sparse = np.sum(s > 1e-10)
-    # print("rank:", rank_sparse)
-    # rank_end_time = time.time()
-
     A_nnz = A.nnz
 
     print("collect A sampled_col_index sampled_row_index")
@@ -256,10 +248,15 @@ def CUR_Trans(graph_path, output_path, node_num, sampling_ratio, row_sampling_ra
     sys.stdout.flush()
 
     # SVD on W and then obtain U
+    # # Test:Compute the rank of W
+    # # rank_start_time = time.time()
+    # # _, s, _ = sp.sparse.linalg.svds(W, k=min(W.shape[0], W.shape[1]) - 1)
+    # # rank_sparse = np.sum(s > 1e-10)
+    # # print("rank:", rank_sparse)
+    # # rank_end_time = time.time()
+    
     X, Z, YT = sp.sparse.linalg.svds(W, k=round(math.sqrt(min(W.shape[0], W.shape[1]))), which='LM')
     # rank_ratio = np.sum(Z) / np.sum(s)
-    # print("k:", round(math.sqrt(min(W.shape[0], W.shape[1]))))
-    # print("rank power ratio:", rank_ratio)
     Z = (1 / Z) ** 2
     U = YT.transpose() @ np.diag(Z) @ X.transpose()
     print("collect X Z YT")
