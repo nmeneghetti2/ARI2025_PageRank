@@ -1,6 +1,12 @@
 # PageRank
+## Intruduction
+This is an implementation of the CUR_Trans and $T^2$-Approx algorithms proposed in the paper “Efficient and Accurate PageRank Approximation on Large Graphs” published in the 2025 Proceedings of the ACM on Management of Data, and includes the competitors which are sampling-based PageRank estimations.
 
-## SVD-Trans & CUR_Trans
+## Required environment
+
+
+## Propose algorithms CUR_Trans and $T^2$-Approx
+### SVD-Trans & CUR_Trans
 
 > base command
 
@@ -17,7 +23,7 @@ python CUR_Trans /your_graph_path /your_output_path 0.1 1000 0.1
 
 
 
-## T2-Approx
+### $T^2$-Approx
 
 > base command
 
