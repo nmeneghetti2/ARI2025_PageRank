@@ -11,9 +11,9 @@ source ./scripts/build_reproenv_docker_img.sh
 source ./scripts/create_reproenv_docker_cont.sh
 docker exec -it pagerank_reproenv_container_[username][hashcode] bash
 # the following commands are run within the docker container
-./scripts/configure.sh
-./scripts/get_datasets.sh
-./scripts/run_benchmarks.sh
+source ./scripts/configure.sh
+source ./scripts/get_datasets.sh
+source ./scripts/run_benchmarks.sh
 ```
 The datasets are saved in the \<project-root\>/data directory, the benchmarks' results and log files are saved in \<project-root\>/output.
 
