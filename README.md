@@ -1,7 +1,7 @@
 # PageRank Approximation on Large Graphs - SIGMOD ARI 2025 
 
 This is a fork of the code repository associated with the paper “Efficient and Accurate PageRank Approximation on Large Graphs” published in the 2025 Proceedings of the ACM on Management of Data.
-It contains a dockerized version of the benchmarks, tested with Docker version 28.5.1, build e180ab8.
+It contains a dockerized version of the benchmarks, tested with Docker version 28.5.1, build e180ab8, Red Hat Enterprise Linux 9.6.
 
 ```bash
 git clone https://github.com/nmeneghetti2/ARI2025_PageRank.git
@@ -9,17 +9,17 @@ cd ARI2025_PageRank
 # depending on your system configuration, you may have to run the following three commands with sudo privileges 
 source ./scripts/build_reproenv_docker_img.sh
 source ./scripts/create_reproenv_docker_cont.sh
-docker exec -it pagerank_reproenv_container_<username><hashcode> bash
+docker exec -it pagerank_reproenv_container_[username][hashcode] bash
 # the following commands are run within the docker container
 ./scripts/configure.sh
 ./scripts/get_datasets.sh
 ./scripts/run_benchmarks.sh
 ```
-The datasets are saved in the <project-root>/data directory, the benchmarks' results and log files are saved in <project-root>/output.
+The datasets are saved in the \<project-root\>/data directory, the benchmarks' results and log files are saved in \<project-root\>/output.
 
 # Original README
 ## Intruduction
-This is an implementation of the CUR_Trans and $T^2$-Approx algorithms proposed in the paper “Efficient and Accurate PageRank Approximation on Large Graphs” published in the 2025 Proceedings of the ACM on Management of Data, and docker exec -it pagerank_reproenv_container_niccolom0ecd304b bashincludes the competitors which are sampling-based PageRank estimations.
+This is an implementation of the CUR_Trans and $T^2$-Approx algorithms proposed in the paper “Efficient and Accurate PageRank Approximation on Large Graphs” published in the 2025 Proceedings of the ACM on Management of Data, and includes the competitors which are sampling-based PageRank estimations.
 
 ## Contents
 CUR.py: The algorithm CUR-Trans proposed in this paper and its variant SVD-Trans.
