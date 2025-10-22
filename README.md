@@ -6,7 +6,8 @@ It contains a dockerized version of the benchmarks, tested with Docker version 2
 ```bash
 git clone https://github.com/nmeneghetti2/ARI2025_PageRank.git
 cd ARI2025_PageRank
-# depending on your system configuration, you may have to run the following three commands with sudo privileges 
+# depending on your system configuration, you may have to run 
+# the following three commands with sudo privileges 
 source ./scripts/build_reproenv_docker_img.sh
 source ./scripts/create_reproenv_docker_cont.sh
 docker exec -it pagerank_reproenv_container_[username][hashcode] bash
