@@ -3,11 +3,13 @@ import sys
 import gc
 import time
 
-def SVD_Trans(graph_path, output_path, node_num, sampling_ratio):
+
+def vectorSamplingBySVD(graph_path, output_path, node_num, sampling_ratio):
     import numpy as np
     import scipy as sp
     import scipy.sparse
     import scipy.sparse.linalg
+
 
     node_set = set()
     with open(graph_path, 'r') as file:
@@ -19,6 +21,7 @@ def SVD_Trans(graph_path, output_path, node_num, sampling_ratio):
             to_node = int(data[1])
             node_set.add(from_node)
             node_set.add(to_node)
+
     node_dict = {element: index for index, element in enumerate(node_set)}
     node_dict_t = {index: element for index, element in enumerate(node_set)}
 
@@ -27,7 +30,8 @@ def SVD_Trans(graph_path, output_path, node_num, sampling_ratio):
     del node_set
     gc.collect()
 
-    # load data
+
+
     row, col = [], []
     with open(graph_path, 'r') as file:
         for line in file:
@@ -47,7 +51,8 @@ def SVD_Trans(graph_path, output_path, node_num, sampling_ratio):
     del node_dict
     gc.collect()
 
-    # Generate the transfer matrix A
+
+
     n = node_num
     A = sp.sparse.coo_array((data, (row, col)), shape=(n, n), dtype=float)
 
@@ -62,32 +67,46 @@ def SVD_Trans(graph_path, output_path, node_num, sampling_ratio):
     Q = sp.sparse.csr_array(sp.sparse.spdiags(S.T, 0, *A.shape))
     A = Q @ A
 
+    # a_time = time.time()
+    # U, S, VT = sp.sparse.linalg.svds(A, k=3, which='LM')
+    # b_time = time.time()
+    # print(f"execution_time：{b_time-a_time:.2f} s")
+    # print(S)
+    #
+    # sys.exit(0)
+
     print("collect S Q")
     sys.stdout.flush()
     del S
     del Q
     gc.collect()
 
-    # Calculate the column distribution
+    # 
     total_sums = A.power(2).sum()
     col_sums = A.power(2).sum(axis=0)
     col_distribution = col_sums / total_sums
 
     start_time = time.time()
 
-    # sample col
+    # 
     sub_graph_num = int(n * sampling_ratio)
     selected_node_indices = np.random.choice(A.shape[1], size=sub_graph_num, replace=False, p=col_distribution)
+    # selected_node_indices = np.random.choice(np.arange(0, n), size=sub_graph_num, replace=False)
     selected_sub_matrix = A[:, selected_node_indices]
 
     print("the number of selected_sub_matrix edges: ", selected_sub_matrix.nnz / A.nnz)
+    sys.stdout.flush()
+
+    # sys.exit(0)
+
     print("collect A")
     sys.stdout.flush()
     del A
     gc.collect()
 
-    # SVD decomposition
     U, S, VT = sp.sparse.linalg.svds(selected_sub_matrix, k=round(math.sqrt(sub_graph_num)), which='LM')
+    # U, S, VT = sp.sparse.linalg.svds(A, k=round(math.sqrt(n)/8), which='LM')
+    # print(round(math.sqrt(n)/8))
     sp_U = sp.sparse.csr_array(U)
     sp_VT = sp.sparse.csr_array(VT)
 
@@ -97,19 +116,30 @@ def SVD_Trans(graph_path, output_path, node_num, sampling_ratio):
     del VT
     gc.collect()
 
-    # compute PageRank
+    # select_col_one_U = sp_U[:, [0]]
+    # select_row_one_VT = sp_VT[[0]]
+    # select_one_S = S[0]
+    # t = select_col_one_U * select_one_S
+    # test_matrix = select_col_one_U @ select_row_one_VT
+
+    from sklearn.preprocessing import normalize
+    # sp_U = normalize(sp_U, norm='l1', axis=1)
+    # sp_VT = normalize(sp_VT, norm='l1', axis=1)
     R = np.repeat(1.0 / n, n)
     P = np.repeat(1.0 / n, n)
 
     alpha = 0.85
     tol = 1 / node_num / 10
     for _ in range(sys.maxsize):
+        # print("the number of iterations: ", _ + 1)
+        # sys.stdout.flush()
         R_last = R
         R = R @ sp_U * S @ sp_VT
+        # R = (abs(R) * sampling_ratio) / np.linalg.norm(R, ord=1)
         t = np.repeat(1.0 / n, n)
         t[selected_node_indices] = R
         R = alpha * t + (1 - alpha) * P
-        # calculate error
+
         err = np.absolute(R - R_last).sum()
         if err < n * sampling_ratio * tol:
             R = abs(R) / np.linalg.norm(R, ord=1)
@@ -117,14 +147,15 @@ def SVD_Trans(graph_path, output_path, node_num, sampling_ratio):
             execution_time = end_time - start_time
             print(f"execution_time：{execution_time:.2f} s")
             print("the number of iterations: ", _ + 1)
-            # Save results
+            # 保存结果
+            R = R / np.linalg.norm(R, ord=1)
             with open(output_path, 'w+') as file:
                 for i in selected_node_indices:
                     file.write(f"{node_dict_t[i]}\t{R[i]:.17f}\n")
                 break
 
 
-def CUR_Trans(graph_path, output_path, node_num, sampling_ratio, row_sampling_ration):
+def vectorSamplingByCUR(graph_path, output_path, node_num, sampling_ratio, row_sampling_ration):
     import numpy as np
     import scipy as sp
     import scipy.sparse
@@ -140,6 +171,7 @@ def CUR_Trans(graph_path, output_path, node_num, sampling_ratio, row_sampling_ra
             to_node = int(data[1])
             node_set.add(from_node)
             node_set.add(to_node)
+
     node_dict = {element: index for index, element in enumerate(node_set)}
     node_dict_t = {index: element for index, element in enumerate(node_set)}
 
@@ -148,7 +180,7 @@ def CUR_Trans(graph_path, output_path, node_num, sampling_ratio, row_sampling_ra
     del node_set
     gc.collect()
 
-    # load data
+
     row, col = [], []
     with open(graph_path, 'r') as file:
         for line in file:
@@ -168,7 +200,7 @@ def CUR_Trans(graph_path, output_path, node_num, sampling_ratio, row_sampling_ra
     del node_dict
     gc.collect()
 
-    # Generate the transfer matrix A
+
     n = node_num
     A = sp.sparse.coo_array((data, (row, col)), shape=(n, n), dtype=float)
 
@@ -189,7 +221,7 @@ def CUR_Trans(graph_path, output_path, node_num, sampling_ratio, row_sampling_ra
     del Q
     gc.collect()
 
-    # Calculating row and column distributions
+   
     total_sums = A.power(2).sum()
     col_sums = A.power(2).sum(axis=0)
     row_sums = A.power(2).sum(axis=1)
@@ -204,7 +236,7 @@ def CUR_Trans(graph_path, output_path, node_num, sampling_ratio, row_sampling_ra
 
     start_time = time.time()
 
-    # The rows and columns are extracted according to the row-column distribution to form the U and R matrices
+
     sampled_col_index = np.random.choice(A.shape[1], size=int(node_num * sampling_ratio), replace=False, p=col_distribution)
     sampled_row_index = np.random.choice(A.shape[0], size=int(node_num * row_sampling_ration), replace=False, p=row_distribution)
     sampled_col_index.sort()
@@ -212,9 +244,7 @@ def CUR_Trans(graph_path, output_path, node_num, sampling_ratio, row_sampling_ra
     C = A[:, sampled_col_index]
     R = A[sampled_row_index, :]
 
-    # # If you need to scale the sampled elements, you need to uncomment the following code.
-    # # Divide the C and R matrices by the specific parameter.
-    # # Scaling each element in R.
+
     # for i in range(R.shape[0]):
     #     start_idx = R.indptr[i]
     #     end_idx = R.indptr[i + 1]
@@ -223,7 +253,7 @@ def CUR_Trans(graph_path, output_path, node_num, sampling_ratio, row_sampling_ra
     #         value = R.data[j]
     #         R[i, col_idx] = value / row_distribution[sampled_row_index[i]]
     #
-    # # Scaling each element in C.
+    # 
     # C = sp.sparse.csc_array(C)
     # for j in range(C.shape[1]):
     #     start_idx = C.indptr[j]
@@ -234,6 +264,15 @@ def CUR_Trans(graph_path, output_path, node_num, sampling_ratio, row_sampling_ra
     #         C[row_idx, j] = value / col_distribution[sampled_col_index[j]]
 
     W = A[sampled_row_index][:, sampled_col_index]
+
+    # 
+    # rank_start_time = time.time()
+    # _, s, _ = sp.sparse.linalg.svds(W, k=min(W.shape[0], W.shape[1]) - 1)
+    # 
+    # rank_sparse = np.sum(s > 1e-10)
+    # print("rank:", rank_sparse)
+    # rank_end_time = time.time()
+
     A_nnz = A.nnz
 
     print("collect A sampled_col_index sampled_row_index")
@@ -247,16 +286,13 @@ def CUR_Trans(graph_path, output_path, node_num, sampling_ratio, row_sampling_ra
     print("the number of W edges: ", W.nnz / A_nnz)
     sys.stdout.flush()
 
-    # SVD on W and then obtain U
-    # # Test:Compute the rank of W
-    # # rank_start_time = time.time()
-    # # _, s, _ = sp.sparse.linalg.svds(W, k=min(W.shape[0], W.shape[1]) - 1)
-    # # rank_sparse = np.sum(s > 1e-10)
-    # # print("rank:", rank_sparse)
-    # # rank_end_time = time.time()
-    
+    # sys.exit(0)
+
+    # 
     X, Z, YT = sp.sparse.linalg.svds(W, k=round(math.sqrt(min(W.shape[0], W.shape[1]))), which='LM')
     # rank_ratio = np.sum(Z) / np.sum(s)
+    # print("k:", round(math.sqrt(min(W.shape[0], W.shape[1]))))
+    # print("rank power ratio:", rank_ratio)
     Z = (1 / Z) ** 2
     U = YT.transpose() @ np.diag(Z) @ X.transpose()
     print("collect X Z YT")
@@ -265,31 +301,67 @@ def CUR_Trans(graph_path, output_path, node_num, sampling_ratio, row_sampling_ra
     del YT
     sys.stdout.flush()
 
-    # compute PageRank
-    sp_C = C
-    sp_R = R
+    #
+    from sklearn.preprocessing import normalize
+    sp_C = normalize(C, norm='l1', axis=1)
+    sp_R = normalize(R, norm='l1', axis=1)
     R = np.repeat(1.0 / n, n)
     R = U @ sp_R @ R
     P = np.repeat(1.0 / n, n)
+    col_num = int(node_num * sampling_ratio)
+    c = np.repeat(1.0 / col_num, col_num)
     alpha = 0.85
-    tol = 1 / node_num / 10
+    tol = 1 / node_num / 1000000000000000000
     for _ in range(sys.maxsize):
         R_last = R
-        R = R @ sp_C @ U @ sp_R
-        R = alpha * R + (1 - alpha) * P
-        # calculate error
+        # R = R @ sp_C @ U @ sp_R
+        R = U @ sp_R @ sp_C @ R
+        R = alpha * R + (1 - alpha) * c
         err = np.absolute(R - R_last).sum()
-        if err < n * tol:
+        print(f"iteration: {_+1}, avg err: {err/col_num:.18f}")
+        if err < col_num * tol or _ > 7:
+            # maxR = max(R)
+            # minR = min(R)
+            # R = (R - minR) / (maxR - minR)
+            # R = R / np.linalg.norm(R, ord=1)
+            R = alpha * sp_C @ R + (1 - alpha) * P
             R = abs(R) / np.linalg.norm(R, ord=1)
             end_time = time.time()
+            # execution_time = end_time - start_time - (rank_end_time - rank_start_time)
             execution_time = end_time - start_time
             print(f"execution_time：{execution_time:.2f} s")
             print("the number of iterations: ", _ + 1)
-            # Save results
+            R = R / np.linalg.norm(R, ord=1)
             with open(output_path, 'w+') as file:
                 for i in range(len(node_dict_t)):
                     file.write(f"{node_dict_t[i]}\t{R[i]:.17f}\n")
                 break
+
+    # alpha = 0.85
+    # tol = 1 / node_num / 10
+    # for _ in range(sys.maxsize):
+    #     R_last = R
+    #     R = R @ sp_C @ U @ sp_R
+    #     # R = abs(R) / np.linalg.norm(R, ord=1)
+    #     R = alpha * R + (1 - alpha) * P
+    #     
+    #     err = np.absolute(R - R_last).sum()
+    #     if err < n * tol:
+    #         # maxR = max(R)
+    #         # minR = min(R)
+    #         # R = (R - minR) / (maxR - minR)
+    #         # R = R / np.linalg.norm(R, ord=1)
+    #         R = abs(R) / np.linalg.norm(R, ord=1)
+    #         end_time = time.time()
+    #         execution_time = end_time - start_time - (rank_end_time - rank_start_time)
+    #         print(f"execution_time：{execution_time:.2f} s")
+    #         print("the number of iterations: ", _ + 1)
+    #        
+    #         R = R / np.linalg.norm(R, ord=1)
+    #         with open(output_path, 'w+') as file:
+    #             for i in range(len(node_dict_t)):
+    #                 file.write(f"{node_dict_t[i]}\t{R[i]:.17f}\n")
+    #             break
 
 
 args = sys.argv
@@ -299,8 +371,9 @@ output_path = args[3]
 sampling_ratio = float(args[4])
 node_num = int(args[5])
 
-if algorithm == "SVD_Trans":
-    SVD_Trans(graph_path, output_path, node_num, sampling_ratio)
-elif algorithm == "CUR_Trans":
+if algorithm == "svd":
+    vectorSamplingBySVD(graph_path, output_path, node_num, sampling_ratio)
+elif algorithm == "cur":
     row_sampling_ration = float(args[6])
-    CUR_Trans(graph_path, output_path, node_num, sampling_ratio, row_sampling_ration)
+    vectorSamplingByCUR(graph_path, output_path, node_num, sampling_ratio, row_sampling_ration)
+
