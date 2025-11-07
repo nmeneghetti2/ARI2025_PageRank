@@ -23,7 +23,9 @@ PROJECT_ROOT_ABS_PATH=$(readlink -f ${SCRIPTSDIR_ABS_PATH}/../)
 DATADIR_ABS_PATH=$(readlink -f ${PROJECT_ROOT_ABS_PATH}/data)
 OUTPUTDIR_ABS_PATH=$(readlink -f ${PROJECT_ROOT_ABS_PATH}/output)
 
-# install networkit
+# install networkit and tqdm
 python3 -m venv $PROJECT_ROOT_ABS_PATH/pyenv
 source $PROJECT_ROOT_ABS_PATH/pyenv/bin/activate
 pip3 install networkit
+pip3 install tqdm
+
